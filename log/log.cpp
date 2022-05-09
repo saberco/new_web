@@ -131,13 +131,22 @@ void Log::write_log(int level, const char *format,...){
                      my_tm.tm_hour, my_tm.tm_min, my_tm.tm_sec, now.tv_usec, s);
     //内容格式化，用于向字符串中打印数据、数据格式用户自定义，返回写入到字符数组str中的字符个数(不包含终止符)
     int m = vsnprintf(m_buf + n, m_log_buf_size - 1, format, valst);
-    m_buf[n + m] = '\n';
-    m_buf[n + m + 1] = '\0';
+    //这里可能会数组越界，判断一下
+    // m_buf[n + m] = '\n';
+    // m_buf[n + m + 1] = '\0';
+    if(n + m + 1 > m_log_buf_size - 1){
+        m_buf[m_log_buf_size-2] = '\n';
+        m_buf[m_log_buf_size-1] = '\0';
+    }
+    else{
+        m_buf[n + m] = '\n';
+        m_buf[n + m + 1] = '\0';
+    }
     log_str = m_buf;
 
     m_mutex.unlock();
 
-    //当数据在m_buf缓冲区了，判断采用同步写或是异步写
+    //当数据在m_buf缓冲区了，判断采用同步写或是异步写,异步就放到阻塞队列，同步就直接写
     if(m_is_async && !m_log_queue->full()){
         m_log_queue->push(log_str);
     }
