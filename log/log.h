@@ -11,6 +11,7 @@
 class Log {
 public:
     //局部懒汉单例
+    
     static Log* GetInstence(){
         static Log instence;
         return &instence;
@@ -54,7 +55,8 @@ private:
     block_queue<std::string> *m_log_queue;//阻塞队列
     bool m_is_async;                //是否为同步
     locker m_mutex;                 
-    int m_close_log;                //关闭日志
+    int m_close_log;                //关闭日志clear
+    
 
 };
 

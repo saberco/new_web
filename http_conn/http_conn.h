@@ -26,7 +26,7 @@
 #include"../timer/timerlst.h"
 #include"../log/log.h"
 
-using std::string;
+
 class http_conn{
 public:
     static const int FILENAME_LEN = 200;            //文件名称大小
@@ -58,7 +58,7 @@ public:
 
 public:
     //初始化
-    void init(int sockfd, const sockaddr_in &addr, char *root, int TRIGMode, int close_log , string user, string passwd, string sqlname);
+    void init(int sockfd, const sockaddr_in &addr, char *root, int TRIGMode, int close_log , std::string user, std::string passwd, std::string sqlname);
     //关闭http连接
     void close_conn(bool real_close = true);
     //工作函数
@@ -94,7 +94,7 @@ private:
     //生成响应报文
     HTTP_CODE do_request();
     //get_line用来将指针后移指向没有处理的字符
-    char* get_line() {return m_read_buf + m_start_linel;}
+    char* get_line() {return m_read_buf + m_start_line;}
     //从状态机读取一行，分析是解析的哪一部分
     LINE_STATE parse_line();
     void unmap();
@@ -142,13 +142,15 @@ private:
     char* m_file_address;                       //http请求的文件在服务器上的地址
     struct stat m_file_stat;                    //所请求的文件信息，文件大小，创建时间访问时间等
     struct iovec m_iv[2];                       //iovec向量，用于分散写，即将响应报文和内存中的文件一起写入写缓冲区，生成http响应，响应体就是html部分
+    int m_iv_count;
+
     int cgi;                                    //是否使用post
     char *m_string;                             //请求头的数据
     int bytes_to_send;                          //剩余发送字节数
     int bytes_have_send;                        //已发送字节数
     char* doc_root;
 
-    map<string,string> m_users;                 //用户名密码映射
+    std::map<std::string,std::string> m_users;                 //用户名密码映射
     int m_TRIGMode;                             //epoll触发方式
     int m_close_log;                            //是否启用日志
 
