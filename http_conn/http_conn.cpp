@@ -116,10 +116,13 @@ void http_conn::init(int sockfd, const sockaddr_in &addr, char *root, int TRIGMo
     m_TRIGMode = TRIGMode;
     m_close_log = close_log;
     addfd(m_epollfd, m_sockfd, true, m_TRIGMode);
+    m_user_count++;
 
     strcpy(sql_user, user.c_str());
     strcpy(sql_passwd, passwd.c_str());
     strcpy(sql_name, sqlname.c_str());
+
+    init();
 }
 
 //内部调用初始化
@@ -214,7 +217,7 @@ http_conn::HTTP_CODE http_conn::process_read(){
         //m_start_line 是每一个数据行在m_read_buf的起始位置
         //m_checked_idx是从状态机在m_read_buf中读取的位置，处理完一行需要将其置到主状态机中
         m_start_line = m_checked_idx;
-
+        LOG_INFO("%s", text);
         //主状态机的三种状态转移
         switch (m_check_state)
         {
@@ -421,7 +424,7 @@ http_conn::HTTP_CODE http_conn::do_request(){
         /3————POST请求，请求验证注册
         /5————POST请求，请求图片
         /6————POST请求，请求视频
-        /7————POST请求，关注册
+        /7————POST请求，关注
     */
     if(cgi == 1 &&(*(p+1) == '2' || *(p+1) == '3')){
         //判断是2登录还是3注册
@@ -445,7 +448,7 @@ http_conn::HTTP_CODE http_conn::do_request(){
         }
         password[j] = '\0';
         //注册需要判断是否有重名
-        if(*(p+1) == '2'){
+        if(*(p+1) == '3'){
             char* sql_insert = (char*)malloc(sizeof(char)*200);
             strcpy(sql_insert, "INSERT INTO users(name, pwd) VALUES(");
             strcat(sql_insert,"'");
@@ -470,7 +473,7 @@ http_conn::HTTP_CODE http_conn::do_request(){
                 strcpy(m_url, "/registerError.html");
             }
         }//登录直接判断
-        else if(*(p+1) == '3'){
+        else if(*(p+1) == '2'){
             if(users.find(name) != users.end() && users[name] == password){
                 strcpy(m_url,"/welcome.html");
             }
@@ -558,7 +561,7 @@ void http_conn::unmap(){
 }
 
 bool http_conn::add_response(const char * format, ...){
-    if(m_write_idx > WRITE_BUFFER_SIZE)return false;
+    if(m_write_idx >= WRITE_BUFFER_SIZE)return false;
     //定义可变参数列表
     va_list arg_list;
     //传入参数初始化arg_list
@@ -703,7 +706,7 @@ bool http_conn::write(){
         }
         //没发送完继续发送
         else{
-            m_iv[0].iov_base = m_write_buf + bytes_to_send;
+            m_iv[0].iov_base = m_write_buf + bytes_have_send;
             m_iv[0].iov_len = m_iv[0].iov_len - bytes_have_send;
         }
 
@@ -715,7 +718,7 @@ bool http_conn::write(){
                 return true;
             }
             else{
-                return true;
+                return false;
             }
         }
     }

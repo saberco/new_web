@@ -1,11 +1,6 @@
 #include"Config.h"
 
 Config::Config(){
-
-}
-
-
-Config::~Config(){
     PORT = 9006;
     //默认同步
     LOGWrite = 0;
@@ -27,10 +22,11 @@ Config::~Config(){
     actor_model = 0;
 }
 
+
 void Config::parse_arg(int argc, char * argv[]){
     int opt;
     const char* str = "p:l:m:o:s:t:c:a:";
-    while((opt = getopt(argc, argv, str)) != 1){
+    while((opt = getopt(argc, argv, str)) != -1){
         switch(opt)
         {
         case 'p':

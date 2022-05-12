@@ -30,7 +30,6 @@ private:
     std::list<T*> m_workqueue;  //请求队列
     locker m_queuelocker;       //保护请求队列的锁
     sem m_queuestat;            //请求队列中是否有任务
-    bool m_stop;                //结束线程的标志位
     connection_pool* m_connPool; //数据库连接池
     int m_actor_model;          //模型切换,1是reactor模式，0是proactor模式
 };
@@ -39,7 +38,6 @@ template<typename T>
 threadpool<T>::threadpool(int actor_model,connection_pool * connpool, int thread_number, int max_request)
                         :m_thread_number(thread_number)
                         ,m_max_requests(max_request)
-                        ,m_stop(false)
                         ,m_threads(NULL)
                         ,m_connPool(connpool)
                         ,m_actor_model(actor_model)
@@ -68,7 +66,6 @@ threadpool<T>::threadpool(int actor_model,connection_pool * connpool, int thread
 template<typename T>
 threadpool<T>::~threadpool(){
     delete[] m_threads;
-    m_stop = true;
 }
 
 //给请求队列添加请求
@@ -76,7 +73,7 @@ template<typename T>
 bool threadpool<T>::append(T* request, int state){
     m_queuelocker.lock();
     //工作队列中的请求过多时，解锁返回false
-    if(m_workqueue.size() > m_max_requests){
+    if(m_workqueue.size() >= m_max_requests){
         m_queuelocker.unlock();
         return false;
     }
@@ -93,7 +90,7 @@ template<typename T>
 bool threadpool<T>::append_p(T* request){
     m_queuelocker.lock();
     //工作队列中的请求过多时，解锁返回false
-    if(m_workqueue.size() > m_max_requests){
+    if(m_workqueue.size() >= m_max_requests){
         m_queuelocker.unlock();
         return false;
     }
@@ -113,7 +110,7 @@ void * threadpool<T>::worker(void * arg){
 
 template<typename T>
 void threadpool<T>::run(){
-    while(!m_stop){
+    while(true){
         m_queuestat.wait();
         //如果有任务了
         m_queuelocker.lock();

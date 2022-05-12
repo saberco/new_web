@@ -120,7 +120,7 @@ void Webserver::eventListen(){
     
     int flag = 1;
     //设置端口复用
-    setsockopt(m_listenfd, SOL_SOCKET, SO_REUSEPORT, &flag, sizeof(flag));
+    setsockopt(m_listenfd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag));
     //绑定
     ret = bind(m_listenfd,(struct sockaddr*)&address, sizeof(address));
     assert(ret>=0);
@@ -213,7 +213,7 @@ bool Webserver::dealclientdata(){
         timer(connfd, client_address);
     }
     //et
-    else if(1 == m_LISTENTRIGMode){
+    else{
         while(1){
             int connfd = accept(m_listenfd, (struct sockaddr*)&client_address, &client_addrlength);
             if(connfd < 0){
