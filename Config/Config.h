@@ -1,15 +1,19 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
+#include <map>
 
 #include "../webserver/webserver.h"
+#include "Json.h"
+#include "JsonValue.h"
+#include "JsonParse.h"
+#include "JsonException.h"
 
 class Config{
 public:
     Config();
     ~Config(){};
 
-    void parse_arg(int argc, char* argv[]);
-
+    
     //端口号
     int PORT;
     //同步or异步
@@ -30,6 +34,11 @@ public:
     int close_log;
     //并发模型选择
     int actor_model;
+
+private:
+    cocolay::Json m_json;
+    char * m_buf;
+    std::map<std::string, int> m_config;
 };
 
 

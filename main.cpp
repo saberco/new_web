@@ -8,7 +8,6 @@ int main(int argc, char* argv[]){
     string databasename = "test";
     int m_close_log = 0;
     Config config;
-    config.parse_arg(argc, argv);
 
 
     Webserver server;

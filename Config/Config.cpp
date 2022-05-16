@@ -1,76 +1,39 @@
 #include"Config.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <cstdio>
+#include <cstdlib>
+#include <unistd.h>
+#include <iostream>
+
 
 Config::Config(){
-    PORT = 9006;
-    //默认同步
-    LOGWrite = 0;
-    //触发组合模式,默认listenfd LT + connfd LT
-    TRIGMode = 0;
-    //两个触发模式
-    LISTENTRIGMode = 0;
-    CONNTRIGMode = 0;
-
-    //优雅关闭连接
-    OPT_LINGER = 0;
-    //数据库连接池数量
-    sql_num = 8;
-    //线程数量
-    thread_num = 8;
-    //默认不关闭日志
-    close_log = 0;
-    //并发模型默认proactor
-    actor_model = 0;
-}
-
-
-void Config::parse_arg(int argc, char * argv[]){
-    int opt;
-    const char* str = "p:l:m:o:s:t:c:a:";
-    while((opt = getopt(argc, argv, str)) != -1){
-        switch(opt)
-        {
-        case 'p':
-        {
-            PORT = atoi(optarg);
-            break;
-        }
-        case 'l':
-        {
-            LOGWrite = atoi(optarg);
-            break;
-        }
-        case 'm':
-        {
-            TRIGMode = atoi(optarg);
-            break;
-        }
-        case 'o':
-        {
-            OPT_LINGER = atoi(optarg);
-            break;
-        }
-        case 's':
-        {
-            sql_num = atoi(optarg);
-            break;
-        }
-        case 't':
-        {
-            thread_num = atoi(optarg);
-            break;
-        }
-        case 'c':
-        {
-            close_log = atoi(optarg);
-            break;
-        }
-        case 'a':
-        {
-            actor_model= atoi(optarg);
-            break;
-        }
-        default:
-            break;
-        }
+    m_buf = (char*)malloc(sizeof(char) *1000);
+    int fd = open("/home/coco/new_web/WebConfig.json", O_RDONLY);
+    int ret = read(fd, m_buf ,1000);
+    if(ret<0){
+        printf("error");
+        exit(0);
+    }
+    m_json.parse(m_buf);
+    int st = m_json.get_obj_size();
+    for(int i=0;i<st;++i){
+        auto key = m_json.get_obj_key(i);
+        auto v = m_json.get_obj_value(i);
+        m_config[key] =  v.get_num();
+    }
+    for(auto num:m_config){
+        if(num.first=="PORT")PORT = num.second;
+        else if(num.first=="LOGWrite") LOGWrite = num.second;
+        else if(num.first=="TRIGMode")TRIGMode = num.second;
+        else if(num.first=="LISTENTRIGMode")LISTENTRIGMode = num.second;
+        else if(num.first=="CONNTRIGMode")CONNTRIGMode = num.second;
+        else if(num.first=="OPT_LINGER")OPT_LINGER = num.second;
+        else if(num.first=="sql_num")sql_num = num.second;
+        else if(num.first=="thread_num")thread_num = num.second;
+        else if(num.first=="close_log")close_log = num.second;
+        else if(num.first=="actor_model")actor_model = num.second;
     }
 }
+
