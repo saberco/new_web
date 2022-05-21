@@ -407,7 +407,8 @@ http_conn::HTTP_CODE http_conn::parse_content(char * text){
 }
 
 //网站资源的根路径
-const char* doc_root = "/home/coco/new_web/new_web/source";
+// const char* doc_root = "/home/coco/new_web/new_web/source";
+// const char* doc_root = "source";
 //做出http响应
 http_conn::HTTP_CODE http_conn::do_request(){
     //先将real_file路径改为资源根路径
@@ -513,7 +514,7 @@ http_conn::HTTP_CODE http_conn::do_request(){
     //如果是/6则是请求视频
     else if(*(p+1) == '6'){
         char* m_url_real = (char*)malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/vedio.html");
+        strcpy(m_url_real, "/video.html");
         //将网站目录和资源目录进行拼接
         strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
 
@@ -549,6 +550,7 @@ http_conn::HTTP_CODE http_conn::do_request(){
     m_file_address = (char*)mmap(0, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
     //映射完毕后关闭文件描述符
     close(fd);
+    std::cout<<m_real_file<<std::endl;
     //返回file_request表示文件存在可访问
     return FILE_REQUEST;
 }
