@@ -87,11 +87,11 @@ public:
     }
 
     bool wait(pthread_mutex_t* m_mutex){
-        return pthread_cond_wait(&m_cond, m_mutex);
+        return pthread_cond_wait(&m_cond, m_mutex) == 0;
     }
 
     bool time_wait(pthread_mutex_t* m_mutex, struct timespec t){
-        return pthread_cond_timedwait(&m_cond, m_mutex, &t);
+        return pthread_cond_timedwait(&m_cond, m_mutex, &t) == 0;
     }
 
 private:

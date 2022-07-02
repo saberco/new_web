@@ -344,8 +344,8 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char * text){
     }
 
     //具体的资源路径,如果是/则显示主页面，其他则按照原本的来
-    if(strlen(m_url) == 1){
-        strcat(m_url, "judge.html");
+    if(m_url[strlen(m_url)-1] == '/'){
+        strcat(m_url, "index.html");
     }
     //请求头已经解析完毕，改变状态
     m_check_state = CHECK_STATE_HEADER;
@@ -427,112 +427,112 @@ http_conn::HTTP_CODE http_conn::do_request(){
         /6————POST请求，请求视频
         /7————POST请求，关注
     */
-    if(cgi == 1 &&(*(p+1) == '2' || *(p+1) == '3')){
-        //判断是2登录还是3注册
-        char flag = m_url[1];
+    // if(cgi == 1 &&(*(p+1) == '2' || *(p+1) == '3')){
+    //     //判断是2登录还是3注册
+    //     char flag = m_url[1];
 
-        char*m_url_real = (char*)malloc(sizeof(char)*200);
-        strcpy(m_url_real, "/");
-        strcat(m_url_real, m_url+2);
-        strncpy(m_real_file+len, m_url_real, FILENAME_LEN - len - 1);
-        free(m_url_real);
-        //提取用户名密码，&前为用户名
-        char name[100], password[100];
-        int i;
-        for(i=5;m_string[i]!='&';++i){
-            name[i-5] = m_string[i];
-        }
-        name[i-5] = '\0';
-        int j=0;
-        for(i=i+10;m_string[i]!='\0';++i,++j){
-            password[j] = m_string[i];
-        }
-        password[j] = '\0';
-        //注册需要判断是否有重名
-        if(*(p+1) == '3'){
-            char* sql_insert = (char*)malloc(sizeof(char)*200);
-            strcpy(sql_insert, "INSERT INTO users(name, pwd) VALUES(");
-            strcat(sql_insert,"'");
-            strcat(sql_insert,name);
-            strcat(sql_insert,"','");
-            strcat(sql_insert,password);
-            strcat(sql_insert,"')");
-            //判断是否有重名，无则插入有则跳转,操作数据库记得加锁
-            if(users.find(name) == users.end()){
-                m_lock.lock();
-                int res = mysql_query(mysql, sql_insert);
-                users.insert(std::make_pair(name, password));
-                m_lock.unlock();
+    //     char*m_url_real = (char*)malloc(sizeof(char)*200);
+    //     strcpy(m_url_real, "/");
+    //     strcat(m_url_real, m_url+2);
+    //     strncpy(m_real_file+len, m_url_real, FILENAME_LEN - len - 1);
+    //     free(m_url_real);
+    //     //提取用户名密码，&前为用户名
+    //     char name[100], password[100];
+    //     int i;
+    //     for(i=5;m_string[i]!='&';++i){
+    //         name[i-5] = m_string[i];
+    //     }
+    //     name[i-5] = '\0';
+    //     int j=0;
+    //     for(i=i+10;m_string[i]!='\0';++i,++j){
+    //         password[j] = m_string[i];
+    //     }
+    //     password[j] = '\0';
+    //     //注册需要判断是否有重名
+    //     if(*(p+1) == '3'){
+    //         char* sql_insert = (char*)malloc(sizeof(char)*200);
+    //         strcpy(sql_insert, "INSERT INTO users(name, pwd) VALUES(");
+    //         strcat(sql_insert,"'");
+    //         strcat(sql_insert,name);
+    //         strcat(sql_insert,"','");
+    //         strcat(sql_insert,password);
+    //         strcat(sql_insert,"')");
+    //         //判断是否有重名，无则插入有则跳转,操作数据库记得加锁
+    //         if(users.find(name) == users.end()){
+    //             m_lock.lock();
+    //             int res = mysql_query(mysql, sql_insert);
+    //             users.insert(std::make_pair(name, password));
+    //             m_lock.unlock();
 
-                if(!res){
-                    strcpy(m_url, "/log.html");
-                }else{
-                    strcpy(m_url, "/registerError.html");
-                }
-            }
-            else{
-                strcpy(m_url, "/registerError.html");
-            }
-        }//登录直接判断
-        else if(*(p+1) == '2'){
-            if(users.find(name) != users.end() && users[name] == password){
-                strcpy(m_url,"/welcome.html");
-            }
-            else{
-                strcpy(m_url,"/logError.html");
-            }
-        }
-    }
+    //             if(!res){
+    //                 strcpy(m_url, "/log.html");
+    //             }else{
+    //                 strcpy(m_url, "/registerError.html");
+    //             }
+    //         }
+    //         else{
+    //             strcpy(m_url, "/registerError.html");
+    //         }
+    //     }//登录直接判断
+    //     else if(*(p+1) == '2'){
+    //         if(users.find(name) != users.end() && users[name] == password){
+    //             strcpy(m_url,"/welcome.html");
+    //         }
+    //         else{
+    //             strcpy(m_url,"/logError.html");
+    //         }
+    //     }
+    // }
 
-    //如果是/0，请求注册页面
-    if(*(p+1) == '0'){
-        char* m_url_real = (char*)malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/register.html");
-        //将网站目录和资源目录进行拼接
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
+    // //如果是/0，请求注册页面
+    // if(*(p+1) == '0'){
+    //     char* m_url_real = (char*)malloc(sizeof(char) * 200);
+    //     strcpy(m_url_real, "/register.html");
+    //     //将网站目录和资源目录进行拼接
+    //     strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
 
-        free(m_url_real);
-    }
-    //如果是/1，跳转到登录页面
-    else if(*(p+1) == '1'){
-        char* m_url_real = (char*)malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/log.html");
-        //将网站目录和资源目录进行拼接
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
+    //     free(m_url_real);
+    // }
+    // //如果是/1，跳转到登录页面
+    // else if(*(p+1) == '1'){
+    //     char* m_url_real = (char*)malloc(sizeof(char) * 200);
+    //     strcpy(m_url_real, "/log.html");
+    //     //将网站目录和资源目录进行拼接
+    //     strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
 
-        free(m_url_real);
-    }
-    //如果是/5，则是请求图片
-    else if(*(p+1) == '5'){
-        char* m_url_real = (char*)malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/picture.html");
-        //将网站目录和资源目录进行拼接
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
+    //     free(m_url_real);
+    // }
+    // //如果是/5，则是请求图片
+    // else if(*(p+1) == '5'){
+    //     char* m_url_real = (char*)malloc(sizeof(char) * 200);
+    //     strcpy(m_url_real, "/picture.html");
+    //     //将网站目录和资源目录进行拼接
+    //     strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
 
-        free(m_url_real);
-    }
-    //如果是/6则是请求视频
-    else if(*(p+1) == '6'){
-        char* m_url_real = (char*)malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/video.html");
-        //将网站目录和资源目录进行拼接
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
+    //     free(m_url_real);
+    // }
+    // //如果是/6则是请求视频
+    // else if(*(p+1) == '6'){
+    //     char* m_url_real = (char*)malloc(sizeof(char) * 200);
+    //     strcpy(m_url_real, "/video.html");
+    //     //将网站目录和资源目录进行拼接
+    //     strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
 
-        free(m_url_real);
-    }
-    //如果是/7则是关注册
-    else if(*(p+1) == '7'){
-        char* m_url_real = (char*)malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/fans.html");
-        //将网站目录和资源目录进行拼接
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
+    //     free(m_url_real);
+    // }
+    // //如果是/7则是关注册
+    // else if(*(p+1) == '7'){
+    //     char* m_url_real = (char*)malloc(sizeof(char) * 200);
+    //     strcpy(m_url_real, "/fans.html");
+    //     //将网站目录和资源目录进行拼接
+    //     strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
 
-        free(m_url_real);
-    }//其他则显示主界面
-    else{
-        strncpy(m_real_file + len, m_url, FILENAME_LEN - len- 1);
-    }
-
+    //     free(m_url_real);
+    // }//其他则显示主界面
+    // else{
+    //     strncpy(m_real_file + len, m_url, FILENAME_LEN - len- 1);
+    // }
+    strncpy(m_real_file + len, m_url, FILENAME_LEN - len- 1);
     //判断stat文件信息，看如何进行返回，获取文件的属性，保存在m_file_stat中
     if(stat(m_real_file, &m_file_stat) < 0){
         return NO_RESOURCE;

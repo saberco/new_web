@@ -6,9 +6,9 @@ Webserver::Webserver(){
     users = new http_conn[MAX_FD];
 
     //资源文件夹路径，工作路径要在new_web路径下
-    char server_path[200];
-    getcwd(server_path,200);
-    char source[8] = "/source";
+    char server_path[50] = "/home/coco/boke/myblog";
+    
+    char source[8] = "/public";
     m_root = (char*)malloc(strlen(server_path) + strlen(source) + 1);
 
     strcpy(m_root, server_path);
@@ -171,14 +171,14 @@ void Webserver::timer(int connfd, sockaddr_in client_address){
     //TIMESLOT为5s
     timer->expire = cur + 3 * TIMESLOT;
     users_timer[connfd].timer = timer;
-    utils.m_timer_lst.add_timer(timer);
+    utils.m_heap_timer.add_timer(timer);
 }
 
 //若出现了数据传输，则延后定时器
 void Webserver::adjust_timer(util_timer * timer){
     time_t cur = time(NULL);
     timer->expire = cur + 3 * TIMESLOT;
-    utils.m_timer_lst.adjust_timer(timer);
+    utils.m_heap_timer.adjust_timer(timer);
 
     LOG_INFO("%s", "adjust timer once");
 }
@@ -186,7 +186,7 @@ void Webserver::adjust_timer(util_timer * timer){
 void Webserver::deal_timer(util_timer * timer, int sockfd){
     timer->cb_func(&users_timer[sockfd]);
     if(timer){
-        utils.m_timer_lst.del_timer(timer);
+        utils.m_heap_timer.del_timer(timer);
     }
 
     LOG_INFO("close fd %d", users_timer[sockfd].sockfd);

@@ -37,7 +37,7 @@ private:
         //从阻塞队列取出一个string，写日志
         while(m_log_queue->pop(single_log)){
             m_mutex.lock();
-            fputs(single_log.c_str(),m_fp);
+            fputs(single_log.c_str(), m_fp);
             m_mutex.unlock();
         }
         return nullptr;
